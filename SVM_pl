@@ -1,0 +1,26 @@
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from sklearn.grid_search import GridSearchCV
+from sklearn.datasets import fetch_mldata
+from sklearn.pipeline import Pipeline
+
+
+# List of estimators
+
+estmtr=[('reduce_dims',PCA(copy=True)),('svm',SVC('Linear'))]
+wrkflw=Pipeline(estmtr)
+# We can use this way to select an estimator and set a value for its args or u could use grid search
+wrkflw.set_params(svm__C=10) 
+
+# To set up a grid search follow these steps
+# Step 1: Setup a dictionary dict() which has parameters of the estimator that should be iterated upon like ncomps,C, K
+# Step 2: Use grid_search = GridSearchCV(wrkflow, param_grid=dict())
+
+# creating the dictionaries with list of parameters
+
+# Get the list of arguments for PCA
+#then SVM
+iterants=dict(reduce_dims__n_components=[760,750,725,700,600],)
+grd_srch=GridSearchCV(wrkflw,param_grid=iterants,verbose=10)
+grd_srch.fit(X, y)
+print(grd_srch.best_estimator_)
