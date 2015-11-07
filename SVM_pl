@@ -4,6 +4,8 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.datasets import fetch_mldata
 from sklearn.pipeline import Pipeline
 
+X=np.load('train_inputs.npy') 
+y=np.load('train_outputs.npy')
 
 # List of estimators
 
