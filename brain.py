@@ -27,8 +27,8 @@ class Brain(object):
         self.y = np.array(train_Y)
         
         # orient y matrix correctly
-        if self.y.shape[1] != 1 or self.y.shape[1] > self.y.shape[0]:
-            self.y = self.y.T
+#        if self.y.shape[1] != 1 or self.y.shape[1] > self.y.shape[0]:
+#            self.y = self.y.T
         
         self.n = self.x.shape[0]
         self.m = self.x.shape[1]
@@ -95,19 +95,19 @@ class Brain(object):
             self.train_len = self.n - self.cross_len
             
             self.c_valid_X = self.x[lower:upper, :]
-            self.c_valid_Y = self.y[lower:upper, :]
+            self.c_valid_Y = self.y[lower:upper]
             
             self.train_X   = np.empty([self.train_len, self.m])
-            self.train_Y   = np.empty([self.train_len, 1])
+            self.train_Y   = np.empty([self.train_len])
             
             l_index = 0
             if lower-1>= 0:
                 self.train_X[:lower, :] = self.x[:lower, :]
-                self.train_Y[:lower, :] = self.y[:lower, :]
+                self.train_Y[:lower] = self.y[:lower]
                 l_index = lower
             if upper < self.n:
                 self.train_X[l_index:, :] = self.x[upper:self.n, :]
-                self.train_Y[l_index:, :] = self.y[upper:self.n, :]
+                self.train_Y[l_index:] = self.y[upper:self.n]
             
     def do_kfold_cross_validation(self):
         iter = list(range(self.c_indices.shape[0]))
@@ -180,7 +180,7 @@ def accuracy(predict, y):
     assert len(y) != 0 and len(predict) != 0
     corr = 0
     for i in range(len(y)):
-        if int(y[i, 0]) == int(predict[i]):
+        if int(y[i]) == int(predict[i]):
             corr += 1
     acc = float(corr) / len(y)
     print 'Accuracy %d / %d = %.4f' % (corr, len(y), acc)

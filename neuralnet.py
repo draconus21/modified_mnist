@@ -19,7 +19,8 @@ class NeuralNetwork(Brain):
         super(NeuralNetwork, self).__init__(data, y, c_ratio)
         
         self.err_thresh  = 0.4
-        self.iter_thresh = 1000
+        self.iter_thresh = 100
+        self.act_thresh  = 0.5
         
         self.class_label = np.unique(np.array(self.y))
         self.classes     = np.arange(len(self.class_label))
@@ -35,14 +36,14 @@ class NeuralNetwork(Brain):
           
         self.Y = self.vectorize(self.y, self.n, self.n_class)
         
-        self.alpha = 0.1 * np.ones(len(nn_architecture))
+        self.alpha = np.arange(1, 0.2 / len(self.nn_architecture), -0.2)
         self.theta_size = self.nn_architecture[0] * (self.m+1)
     
         for i in range(self.nn_architecture.shape[0]):
             if i != 0:
                 self.theta_size += self.nn_architecture[i] * (self.nn_architecture[i-1]+1)
     
-        self.theta = np.random.rand(self.theta_size)
+        self.theta = 0.1 * np.random.rand(self.theta_size)
         
     def train(self, data, y, append_ones=False, c_valid=False):
         if(c_valid == False):
@@ -108,8 +109,10 @@ class NeuralNetwork(Brain):
         return self.class_label[self.classes[pred_cl]]
         
         
-    def activation(self, data, theta, append_ones=True):
-        return self.sigmoid(data, theta, append_ones)
+    def activation(self, data):
+        data[data>self.act_thresh] = 1
+        data[data<=self.act_thresh] = 0
+        return data
         
     def fwd_propagation(self, nn_architecture, data, theta, append_ones=True):
         '''nn_architecture is num_layers x 1 where i-th element is the number
@@ -121,14 +124,14 @@ class NeuralNetwork(Brain):
         num_layers = nn_architecture.shape[0]
         
         layer_data  = data
-        layer_theta = theta[:(data.shape[1]+1)*nn_architecture[0]]
+        layer_theta = theta[:nn_architecture[0]*(data.shape[1]+1)]
         layer_theta = layer_theta.reshape(nn_architecture[0], data.shape[1]+1)
         lower = (data.shape[1]+1)*nn_architecture[0]
         
-        nn_data = np.append([], layer_data)
+        nn_data = np.append([], layer_data.ravel())
         for i in range(num_layers):
-            layer_data = self.activation(layer_data, layer_theta, True)
-            nn_data = np.append(nn_data, layer_data)           
+            layer_data = self.sigmoid(layer_data, layer_theta, True)
+            nn_data = np.append(nn_data, layer_data.ravel())
             if(i!=num_layers-1):
                 layer_theta = theta[lower:lower+nn_architecture[i+1]*(nn_architecture[i]+1)]
                 layer_theta = layer_theta.reshape(nn_architecture[i+1], nn_architecture[i]+1)                
@@ -157,10 +160,26 @@ class NeuralNetwork(Brain):
         
         output  = nn_data[lower_d:upper_d]
         output  = output.reshape(delta.shape)
-        delta   = (Y-output) * self.der_sigmoid(output)
+
+###############################################################################
+#       So, here I am trying to create an output matrix (n_0 X 10),
+#       where, in every row, the column with the highest value in 
+#       output is 1 and everything else is 0.
+#       What I am doing here is highly in-efficient. So, if either
+#       of you know any python/numpy specific way to achieve this,
+#       make the changes here.
+#       I am new to python! :(
+        out2    = np.zeros(output.shape)
+        indices = output.argmax(axis=1)
+        for i in range(indices.shape[0]):
+            out2[i, indices[i]] = 1
+###############################################################################
+        delta   = (Y-out2) #* self.der_sigmoid(output)
+#        print 'delta'
+        print delta
         upper_d = lower_d
-        
-        cost    = np.sum(0.5 * (Y-output) ** 2)/n_0
+
+        cost    = np.sum(0.5 * (Y-out2) ** 2)
         
         layer_data  = np.zeros([1, 1])
         layer_theta = np.zeros([1, 1])
@@ -188,7 +207,7 @@ class NeuralNetwork(Brain):
             big_delta   = delta.T.dot(input_data) / n_0
             delta       = delta.dot(layer_theta) * self.der_sigmoid(input_data)
             delta       = delta[:, 1:delta.shape[1]]
-            new_theta   = layer_theta + alpha[i] * big_delta
+            new_theta   = layer_theta - alpha[i] * big_delta
             
             theta[lower_t:upper_t] = new_theta.ravel()            
             
@@ -201,12 +220,39 @@ class NeuralNetwork(Brain):
     
     
 if __name__ == '__main__':
-#    X=np.load('train_inputs.npy') 
-#    T=np.load('train_outputs.npy')
-#    
-#    X.shape
-#    T.shape
-    a = np.zeros([3, 2])
+#    x=np.load('x.npy') 
+#    y=np.load('y.npy')
+    x=np.array([[1], [2]])
+    y=np.array([[1], [2]])
+#    y[-1] = y[-2]
+#    print x
+#    print y
+#    print y
+#    print x.shape, y.shape
+    archi = np.array([2])
+    
+    archi[archi.shape[0]-1] = len(np.unique(y))
+    
+    nn = NeuralNetwork(archi, x, y, 0.2)
+#    cost, theta = nn.train(x, y, append_ones=True)
+    i = 0#nn.iter_thresh-1
+    cost_vec = []
+    while i<nn.iter_thresh:
+#        nn_data = nn.fwd_propagation(archi, x, nn.theta, append_ones=True)
+        cost, theta = nn.back_propagation(archi, nn.alpha, x, nn.theta, nn.Y, append_ones=True)
+        print cost
+        cost_vec = np.append(cost_vec, cost)
+        
+        i += 1
+#    print cost_vec
+    pred = nn.predict(x)
+    print pred
+#    print np.max(cost_vec)
+#    plt.plot(cost_vec)
+#    plt.axis([0, i, np.min(cost_vec)-1, np.max(cost_vec)+1])
+#    plt.show()
+
+    '''a = np.zeros([3, 2])
     archi = np.zeros(3)
     archi.fill(4)
     archi[archi.shape[0]-1] = 2
