@@ -63,12 +63,18 @@ class NeuralNetwork(Brain):
             cost, theta = self.back_propagation(self.nn_architecture, self.alpha, data, theta, Y, append_ones)
             i += 1
             cost_vec = np.append(cost_vec, cost)
-        
+#            if i%50 == 0:
+#                print 'train iter:', i+1, '| cost:', cost 
+#                print cost_vec
+#                plt.plot(cost_vec)
+#                plt.axis([0, i, 0, max(cost_vec)])
+#                plt.show()
+#            
         self.theta = theta
         print 'iter:', i, 'final cost:', cost
-        plt.plot(cost_vec)
-        plt.axis([0, self.iter_thresh, 0, max(cost_vec)])
-        plt.show()
+#        plt.plot(cost_vec)
+#        plt.axis([0, self.iter_thresh, 0, max(cost_vec)])
+#        plt.show()
         
         return cost, theta
         
@@ -81,7 +87,7 @@ class NeuralNetwork(Brain):
         return Y
                 
     def appendOnes(self, arr):
-#        print 'Appending columns of ones (bias terms)'
+#        print 'Appending columns of ones (bias terms)
         temp = np.ones([arr.shape[0], arr.shape[1]+1])
         temp[:, 1:] = arr
         return temp
@@ -91,9 +97,17 @@ class NeuralNetwork(Brain):
         if(append_ones):
             data=self.appendOnes(data)
         h = data.dot(theta.T)
+        print 'data'
+        print data
+        print 'theta.T'
+        print theta.T
         return (np.add(1, np.exp(-h)))**(-1)
     
     def der_sigmoid(self, a):
+#        print 'a'
+#        print a
+#        print 'der a'
+#        print a * (1-a)
         return a * (1-a)
     
     def predict(self, data, append_ones=True, c_valid=True):
@@ -132,11 +146,14 @@ class NeuralNetwork(Brain):
         for i in range(num_layers):
             layer_data = self.sigmoid(layer_data, layer_theta, True)
             nn_data = np.append(nn_data, layer_data.ravel())
+#            layer_data = self.activation(layer_data)
+            print 'fwd layer', i
+            print layer_data
             if(i!=num_layers-1):
                 layer_theta = theta[lower:lower+nn_architecture[i+1]*(nn_architecture[i]+1)]
                 layer_theta = layer_theta.reshape(nn_architecture[i+1], nn_architecture[i]+1)                
                 lower = nn_architecture[i+1]*(nn_architecture[i]+1)
-        
+        print '*' * 20
         return nn_data
      
     def calc_error(self, output, Y, is_vector=False):
@@ -160,7 +177,7 @@ class NeuralNetwork(Brain):
         
         output  = nn_data[lower_d:upper_d]
         output  = output.reshape(delta.shape)
-
+        
 ###############################################################################
 #       So, here I am trying to create an output matrix (n_0 X 10),
 #       where, in every row, the column with the highest value in 
@@ -175,7 +192,7 @@ class NeuralNetwork(Brain):
             out2[i, indices[i]] = 1
 ###############################################################################
         delta   = (Y-out2) #* self.der_sigmoid(output)
-#        print 'delta'
+        print 'delta'
         print delta
         upper_d = lower_d
 
@@ -204,38 +221,42 @@ class NeuralNetwork(Brain):
             input_data  = np.zeros([n_0, n_nodes_b+1])
             input_data[:, 1:] = layer_data
             
-            big_delta   = delta.T.dot(input_data) / n_0
+            big_delta   = delta.T.dot(input_data)
             delta       = delta.dot(layer_theta) * self.der_sigmoid(input_data)
             delta       = delta[:, 1:delta.shape[1]]
             new_theta   = layer_theta - alpha[i] * big_delta
-            
+            print layer_theta.shape, big_delta.shape
+            print 'theta', i, n_nodes, n_nodes_b+1
+            print layer_theta
+            print 'delta', i
+            print big_delta
             theta[lower_t:upper_t] = new_theta.ravel()            
             
             output      = layer_data
            
             upper_t     = lower_t
             upper_d     = lower_d
-        
+        print '*' * 20
         return cost, theta
     
     
 if __name__ == '__main__':
 #    x=np.load('x.npy') 
 #    y=np.load('y.npy')
-    x=np.array([[1], [2]])
-    y=np.array([[1], [2]])
+    x=np.array([[1, 2, 3], [2, 4, 5], [3, 5, 6]])
+    y=np.array([[1], [2], [3]])
 #    y[-1] = y[-2]
 #    print x
 #    print y
 #    print y
 #    print x.shape, y.shape
-    archi = np.array([2])
+    archi = np.array([3])
     
     archi[archi.shape[0]-1] = len(np.unique(y))
     
     nn = NeuralNetwork(archi, x, y, 0.2)
 #    cost, theta = nn.train(x, y, append_ones=True)
-    i = 0#nn.iter_thresh-1
+    i = nn.iter_thresh-1
     cost_vec = []
     while i<nn.iter_thresh:
 #        nn_data = nn.fwd_propagation(archi, x, nn.theta, append_ones=True)
@@ -286,7 +307,7 @@ if __name__ == '__main__':
     nn = NeuralNetwork(archi, a, y, 0.5)
     cost, cross_err_mat = nn.do_kfold_cross_validation()
     print 'done'
-    '''
+    
 #    cost, theta = nn.train(a, y)
 #    print nn.predict(a, theta)
 #    cost = 1000

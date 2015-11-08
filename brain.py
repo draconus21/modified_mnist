@@ -119,6 +119,7 @@ class Brain(object):
             self.train(self.train_X, self.train_Y, c_valid = True)
             predict = self.predict(self.c_valid_X, c_valid = True)
             if self.cross_len > 0:
+                print accuracy(predict, self.c_valid_Y)
                 c_err = self.calc_error(predict, self.c_valid_Y)
                 cross_err_mat = np.append(cross_err_mat, c_err)
                 print 'cross_error', i, ':', c_err
@@ -183,6 +184,19 @@ def accuracy(predict, y):
         if int(y[i]) == int(predict[i]):
             corr += 1
     acc = float(corr) / len(y)
+    temp_y = np.sort(y)
+    temp_p = np.sort(predict)
+    unique_y, count_y       = np.unique(temp_y, return_counts=True)
+    unique_pred, count_pred = np.unique(temp_p, return_counts=True)
+    if len(unique_y) != len(unique_pred):
+        print 'not equal:', len(unique_y), len(unique_pred)
+        print unique_y
+        print unique_pred
+        
+    print unique_y.shape, unique_pred.shape
+        
+    for i in range(len(unique_y)):
+        print unique_y[i], ': ', count_y[i], '| ', unique_pred[i], ': ', count_pred[i]
     print 'Accuracy %d / %d = %.4f' % (corr, len(y), acc)
 
 if __name__=='__main__':
