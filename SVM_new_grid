@@ -1,0 +1,23 @@
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from sklearn.grid_search import GridSearchCV
+from sklearn.datasets import fetch_mldata
+from sklearn.pipeline import Pipeline
+from sklearn.utils import shuffle
+import numpy as np
+
+
+X=np.load('train_inputs.npy')
+y=np.load('train_outputs.npy')
+
+# List of estimators
+scorelist=[]
+estmtr=[('reduce_dims',PCA(copy=True)),('svm',SVC(kernel='linear'))]
+wrkflw=Pipeline(estmtr)
+iterants=dict(reduce_dims__n_components=[2304,2200,2000,1800],svm__C=[0.001,0.01,0.1,1,10])
+
+grd_srch=GridSearchCV(wrkflw,param_grid=iterants,verbose=10)
+grd_srch.fit(X, y)
+scorelist.append(grd_srch.grid_scores_)
+print(grd_srch.best_estimator_)
+print scorelist
