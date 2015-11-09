@@ -23,7 +23,8 @@ class NeuralNetwork2(Brain):
         self.n_class     = len(self.classes)
         
         self.nn_architecture = nn_architecture
-        self.lmbda = 100 * np.ones(len(archi))
+        self.alpha = 1 * np.ones(len(self.nn_architecture))        
+        self.lmbda = 10 * np.ones(len(archi))
         
         if self.nn_architecture[-1] != self.n_class:
             print 'nn_architecture[-1]:', self.nn_architecture[-1],\
@@ -33,8 +34,8 @@ class NeuralNetwork2(Brain):
           
         self.Y = self.vectorize(self.y, self.n, self.n_class)
         
-        self.alpha = np.arange(1, 0.2 / len(self.nn_architecture), -0.2)
-#        self.alpha = 1 * np.ones(len(self.nn_architecture))        
+#        self.alpha = np.arange(1, 0.2 / len(self.nn_architecture), -0.2)
+        self.alpha = 1 * np.ones(len(self.nn_architecture))        
         self.theta_size = self.nn_architecture[0] * (self.m+1)
     
         for i in range(self.nn_architecture.shape[0]):
@@ -90,7 +91,7 @@ class NeuralNetwork2(Brain):
         a3 = self.sigmoid(z3)
         
         J = -np.sum((Y-a3) ** 2)/n_0
-        reg = lmbda[0] * np.sum(np.sum(theta1 ** 2)) + lmbda[1] * np.sum(np.sum(theta2 ** 2))
+        reg = lmbda[0] * np.sum(theta1 ** 2) + lmbda[1] * np.sum(theta2 ** 2)
         J += reg
         
         delta3 = np.zeros([nn_archi[1], n_0])
@@ -139,7 +140,7 @@ class NeuralNetwork2(Brain):
         theta = self.theta
         
         while cost > self.err_thresh and i<self.iter_thresh:
-            cost, theta = self.back_propagation(archi, alpha, lmbda, data, theta, Y, append_ones) 
+            cost, theta = self.back_propagation(archi, self.alpha, self.lmbda, data, theta, Y, append_ones) 
             i += 1
             cost_vec = np.append(cost_vec, cost)
             
@@ -172,7 +173,7 @@ class NeuralNetwork2(Brain):
         for i in range(indices.shape[0]):
             out2[i, indices[i]] = 1
         return out2.argmax(axis=1)
-    
+
     def accuracy(self, predict, y):
         '''Caclulate accuracy of classification.
         
@@ -193,7 +194,6 @@ class NeuralNetwork2(Brain):
 if __name__ == '__main__':
     x=np.load('x.npy')[:1000, :]
     y=np.load('y.npy')[:1000]
-
 #    x=np.array([[1, 2, 3], [2, 4, 5], [8, 9, 10]])
 #    y=np.array([[1], [2], [2]])
 
