@@ -24,7 +24,7 @@ class NeuralNetwork2(Brain):
         
         self.nn_architecture = nn_architecture
         self.alpha = 1 * np.ones(len(self.nn_architecture))        
-        self.lmbda = 10 * np.ones(len(archi))
+        self.lmbda = 10 * np.ones(len(self.nn_architecture))
         
         if self.nn_architecture[-1] != self.n_class:
             print 'nn_architecture[-1]:', self.nn_architecture[-1],\
