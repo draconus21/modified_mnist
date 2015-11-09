@@ -115,17 +115,21 @@ class Brain(object):
         cross_err_mat = []
         #Itertatively perform cross validation
         for i in iter:
+            cost_vec = []
             self.set_data(i)
-            self.train(self.train_X, self.train_Y, c_valid = True)
-            predict = self.predict(self.c_valid_X, c_valid = True)
+            cost_vec = self.train(self.train_X, self.train_Y, c_valid = True)
             if self.cross_len > 0:
-                print accuracy(predict, self.c_valid_Y)
-                c_err = self.calc_error(predict, self.c_valid_Y)
+                predict = self.predict(self.c_valid_X)
+                c_err = (1-self.accuracy(predict, self.c_valid_Y)) * 100
                 cross_err_mat = np.append(cross_err_mat, c_err)
                 print 'cross_error', i, ':', c_err
-                print accuracy(predict, self.c_valid_Y)
+                print 'accuracy   ', i, ':', self.accuracy(predict, self.c_valid_Y) * 100
                 cross_error += c_err ** 2
-        
+            plt.plot(cost_vec, label = 'cross-'+str(i))
+            plt.axis([0, self.iter_thresh, 0, max(cost_vec)])
+            plt.legend(loc='lower right', shadow=True)            
+            plt.show()
+            
         cross_error /= iter[-1]
         plt.plot(cross_err_mat)
         plt.axis([0, iter[-1], 0, np.max(cross_err_mat)])
