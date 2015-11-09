@@ -96,9 +96,12 @@ class NeuralNetwork2(Brain):
         delta3 = np.zeros([nn_archi[1], n_0])
         delta2 = np.zeros([nn_archi[0], n_0])
 
-        for i in range(n_0):
+        '''for i in range(n_0):
             delta3[:, i] = a3[i, :] - Y[i, :]
             delta2[:, i] = (theta2[:, 1:].T.dot(delta3[:, i])) * self.der_sigmoid(self.sigmoid(z2[i, :]))
+        '''
+        delta3 = (a3 - Y).T
+        delta2 = (theta2[:, 1:].T.dot(delta3)) * self.der_sigmoid(self.sigmoid(z2.T))
         
         big_delta1 = delta2.dot(a1)
         big_delta2 = delta3.dot(a2)
