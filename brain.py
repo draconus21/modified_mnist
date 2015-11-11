@@ -45,6 +45,18 @@ class Brain(object):
         self.c_indices = []
 
         self.set_cross_validation_sets()
+        self.randomize()
+
+    def randomize(self):
+        print 'Randomizing'
+        indices = np.random.permutation(self.n)
+        temp_x = self.x
+        temp_y = self.y
+        for i in range(self.n):
+            self.x[indices[i]] = self.x[i]
+            self.y[indices[i]] = self.y[i]
+        self.x = temp_x
+        self.y = temp_y    
         
     def set_cross_validation_sets(self):
         '''Decides the partitions for different cross-validation sets
@@ -114,27 +126,36 @@ class Brain(object):
         cross_error   = 0
         cross_err_mat = []
         #Itertatively perform cross validation
+        
         for i in iter:
             cost_vec = []
             self.set_data(i)
             cost_vec = self.train(self.train_X, self.train_Y, c_valid = True)
+            predict = self.predict(self.train_X)
+            c_err = (1-self.accuracy(predict, self.train_Y)) * 100
+            print 'train error   ', i, ':', c_err
+            print 'train accuracy', i, ':', self.accuracy(predict, self.train_Y) * 100
+            
             if self.cross_len > 0:
                 predict = self.predict(self.c_valid_X)
                 c_err = (1-self.accuracy(predict, self.c_valid_Y)) * 100
                 cross_err_mat = np.append(cross_err_mat, c_err)
-                print 'cross_error', i, ':', c_err
-                print 'accuracy   ', i, ':', self.accuracy(predict, self.c_valid_Y) * 100
+                print 'cross error   ', i, ':', c_err
+                print 'cross accuracy', i, ':', self.accuracy(predict, self.c_valid_Y) * 100
                 cross_error += c_err ** 2
             
             plt.plot(cost_vec, label = 'cross-'+str(i))
             plt.axis([0, self.iter_thresh, 0.9 * min(cost_vec), 1.1 * max(cost_vec)])
             plt.legend(loc='lower right', shadow=True)            
             plt.show()
-            
-        cross_error /= iter[-1]
-        plt.plot(cross_err_mat)
-        plt.axis([0, iter[-1], 0, np.max(cross_err_mat)])
-        plt.show()
+        
+        if len(cross_err_mat) > 0:
+            cross_error /= iter[-1]
+            plt.plot(cross_err_mat)
+            plt.axis([0, iter[-1], 0, np.max(cross_err_mat)])
+            plt.show()
+        else:
+            print 'no cross_err_mat'
         return cross_error, cross_err_mat
 
 #    @abstractmethod
@@ -173,36 +194,6 @@ class Brain(object):
         Remove 'pass' when there is code added.'''
 #        self.do_kfold_cross_validation()
         pass
-
-def accuracy(predict, y):
-    '''Caclulate accuracy of classification.
-    
-    y      : (nx1 array) Actual values
-    predict: (nx1 array) Predicted values    
-    
-    Note: n is then number of examples.'''
-    
-    assert len(y) == len(predict)
-    assert len(y) != 0 and len(predict) != 0
-    corr = 0
-    for i in range(len(y)):
-        if int(y[i]) == int(predict[i]):
-            corr += 1
-    acc = float(corr) / len(y)
-    temp_y = np.sort(y)
-    temp_p = np.sort(predict)
-    unique_y, count_y       = np.unique(temp_y, return_counts=True)
-    unique_pred, count_pred = np.unique(temp_p, return_counts=True)
-    if len(unique_y) != len(unique_pred):
-        print 'not equal:', len(unique_y), len(unique_pred)
-        print unique_y
-        print unique_pred
-        
-    print unique_y.shape, unique_pred.shape
-        
-    for i in range(len(unique_y)):
-        print unique_y[i], ': ', count_y[i], '| ', unique_pred[i], ': ', count_pred[i]
-    print 'Accuracy %d / %d = %.4f' % (corr, len(y), acc)
 
 if __name__=='__main__':
     x = np.array([[1, 2], [3, 4], [1, 2], [3, 4]])

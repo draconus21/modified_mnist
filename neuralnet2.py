@@ -191,12 +191,15 @@ class NeuralNetwork2(Brain):
         acc = float(corr) / len(y)
         return acc
     
+    
 if __name__ == '__main__':
     x=np.load('x.npy')[:1000, :]
     y=np.load('y.npy')[:1000]
 #    x=np.array([[1, 2, 3], [2, 4, 5], [8, 9, 10]])
 #    y=np.array([[1], [2], [2]])
-
+    x = x-np.mean(x, axis=0)
+    x = x/np.std(x, axis=0)
+    
     archi = np.array([25, len(np.unique(y))])
     
     theta_size = archi[0] * (x.shape[1]+1)
