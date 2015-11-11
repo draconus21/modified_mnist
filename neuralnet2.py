@@ -148,7 +148,7 @@ class NeuralNetwork2(Brain):
         print 'iter:', i, 'final cost:', cost
         if c_valid==False:
             plt.plot(cost_vec, label='full train')
-            plt.axis([0, self.iter_thresh, 0, max(cost_vec)])
+            plt.axis([0, self.iter_thresh, 0.9 * min(cost_vec), 1.1 * max(cost_vec)])
             plt.legend(loc='lower right', shadow=True)
             plt.show()
         else:

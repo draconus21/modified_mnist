@@ -125,8 +125,9 @@ class Brain(object):
                 print 'cross_error', i, ':', c_err
                 print 'accuracy   ', i, ':', self.accuracy(predict, self.c_valid_Y) * 100
                 cross_error += c_err ** 2
+            
             plt.plot(cost_vec, label = 'cross-'+str(i))
-            plt.axis([0, self.iter_thresh, 0, max(cost_vec)])
+            plt.axis([0, self.iter_thresh, 0.9 * min(cost_vec), 1.1 * max(cost_vec)])
             plt.legend(loc='lower right', shadow=True)            
             plt.show()
             
